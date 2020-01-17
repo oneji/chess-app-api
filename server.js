@@ -7,6 +7,8 @@ const path = require('path')
 const env = process.env.NODE_ENV || 'production';
 const config = require('./configs/environments')[env]
 
+console.log(env);
+
 require('./configs/passport')
 
 // Initialize an app
