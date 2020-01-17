@@ -4,7 +4,7 @@ const bodyParser = require('body-parser')
 const path = require('path')
 
 // Determine the environment
-const env = process.env.NODE_ENV || 'production';
+const env = process.env.NODE_ENV;
 const config = require('./configs/environments')[env]
 
 console.log(env);
