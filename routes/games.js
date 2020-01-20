@@ -1,16 +1,17 @@
 const express = require('express')
 const router = express.Router()
+const authMiddleware = require('../middleware/auth')
 
 // Contollers
 const GameController = require('../controllers/gameController')
 
 // Routes
-router.get('/:competitionId', GameController.get);
-router.get('/getById/:id', GameController.getGameById);
-router.post('/', GameController.create);
-router.post('/start/:id', GameController.start);
-router.put('/finish/:id', GameController.finish);
-router.post('/:id/setTheWinner', GameController.setTheWinner);
-router.post('/saveHistory/:id', GameController.saveHistory);
+router.get('/:competitionId', authMiddleware, GameController.get);
+router.get('/getById/:id', authMiddleware, GameController.getGameById);
+router.post('/', authMiddleware, GameController.create);
+router.post('/start/:id', authMiddleware, GameController.start);
+router.put('/finish/:id', authMiddleware, GameController.finish);
+router.post('/:id/setTheWinner', authMiddleware, GameController.setTheWinner);
+router.post('/saveHistory/:id', authMiddleware, GameController.saveHistory);
 // Export
 module.exports = router

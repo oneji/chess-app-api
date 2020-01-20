@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const multer = require('multer')
-
+const authMiddleware = require('../middleware/auth')
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -18,7 +18,7 @@ const upload = multer({ storage: storage });
 const PlayerController = require('../controllers/playerController')
 
 // Routes
-router.get('/', PlayerController.get);
-router.post('/', upload.single('playerPhoto'), PlayerController.create);
+router.get('/', authMiddleware, PlayerController.get);
+router.post('/', upload.single('playerPhoto'), authMiddleware, PlayerController.create);
 // Export
 module.exports = router

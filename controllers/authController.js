@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt')
 const passport = require('passport')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
-const env = process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+const env = process.env.NODE_ENV;
 const config = require('../configs/environments')[env]
 
 /**
@@ -49,12 +49,15 @@ function signIn(req, res) {
             if (err) {
                 res.send(err);
             }
-            // generate a signed son web token with the contents of user object and return it in the response
-            const token = jwt.sign(user.toJSON(), config.secrets.jwt);
+            // generate a signed json web token with the contents of user object and return it in the response
+            const token = jwt.sign({ user: user.toJSON() }, config.secrets.jwt, {
+                expiresIn: '1h'
+            });
+
             return res.json({
                 ok: true,
                 user,
-                token 
+                token
             });
         });
     })(req, res);

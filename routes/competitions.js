@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const multer = require('multer')
+const authMiddleware = require('../middleware/auth')
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -17,15 +18,15 @@ const upload = multer({ storage: storage });
 const CompetitionController = require('../controllers/competitionController')
 
 // Routes
-router.get('/', CompetitionController.get);
-router.get('/getById/:id', CompetitionController.getById);
-router.get('/getBySlug/:slug', CompetitionController.getBySlug);
-router.post('/', upload.single('competitionLogo'), CompetitionController.create);
-router.delete('/remove/:id', CompetitionController.remove);
-router.post('/:id/addPlayers', CompetitionController.addPlayers);
-router.delete('/:id/removePlayers/:playerId', CompetitionController.removePlayers);
-router.post('/start', CompetitionController.start);
-router.get('/:id/games', CompetitionController.getCompetitionGames);
+router.get('/', authMiddleware, authMiddleware, CompetitionController.get);
+router.get('/getById/:id', authMiddleware, CompetitionController.getById);
+router.get('/getBySlug/:slug', authMiddleware, CompetitionController.getBySlug);
+router.post('/', upload.single('competitionLogo'), authMiddleware, CompetitionController.create);
+router.delete('/remove/:id', authMiddleware, CompetitionController.remove);
+router.post('/:id/addPlayers', authMiddleware, CompetitionController.addPlayers);
+router.delete('/:id/removePlayers/:playerId', authMiddleware, CompetitionController.removePlayers);
+router.post('/start', authMiddleware, CompetitionController.start);
+router.get('/:id/games', authMiddleware, CompetitionController.getCompetitionGames);
 
 // Export
 module.exports = router
