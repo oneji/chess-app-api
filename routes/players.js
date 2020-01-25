@@ -20,5 +20,6 @@ const PlayerController = require('../controllers/playerController')
 // Routes
 router.get('/', authMiddleware, PlayerController.get);
 router.post('/', upload.single('playerPhoto'), authMiddleware, PlayerController.create);
+router.post('/delete/:id', authMiddleware, PlayerController.remove);
 // Export
 module.exports = router

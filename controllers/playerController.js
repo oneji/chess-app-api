@@ -9,7 +9,7 @@ const Joi = require('joi')
  */
 function get(req, res) {
     // Find all players from db
-    Player.find({}, (err, players) => {
+    Player.find({ deleted: false }, (err, players) => {
         res.json({
             'ok': true,
             'players': players
@@ -63,7 +63,24 @@ function create(req, res) {
     });
 }
 
+function remove(req, res) {
+    Player.findById(req.params.id)
+        .then(player => {
+            player.deleted = true;
+            player.save(err => {
+                if(err) console.log('error');
+
+                return res.json({
+                    ok: true,
+                    message: 'Player has been successfully deleted.',
+                    player
+                });
+            });
+        });
+}
+
 module.exports = {
     get,
-    create
+    create,
+    remove
 }
