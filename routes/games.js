@@ -11,6 +11,7 @@ router.get('/getById/:id', authMiddleware, GameController.getGameById);
 router.post('/', authMiddleware, GameController.create);
 router.post('/start/:id', authMiddleware, GameController.start);
 router.put('/finish/:id', authMiddleware, GameController.finish);
+router.put('/draw/:id', authMiddleware, GameController.draw);
 router.post('/:id/setTheWinner', authMiddleware, GameController.setTheWinner);
 router.post('/saveHistory/:id', authMiddleware, GameController.saveHistory);
 // Export

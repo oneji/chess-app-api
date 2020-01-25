@@ -20,9 +20,27 @@ function get(req, res) {
         .populate('whites')
         .populate('blacks')
         .exec((err, games) => {
+            let qualifications = { text: 'Qualifications', items: [] };
+            let quarterFinal = { text: 'Quarter final', items: [] };
+            let semiFinal = { text: 'Semi final', items: [] };
+            let final = { text: 'Final', items: [] };
+
+            games.map(game => {
+                if(game.gameType === 'qualifications') qualifications.items.push(game);
+                if(game.gameType === 'quarterFinal') quarterFinal.items.push(game);
+                if(game.gameType === 'semiFinal') semiFinal.items.push(game);
+                if(game.gameType === 'final') final.items.push(game);
+            });
+
+
             res.json({
-                'ok': true,
-                'games': games
+                ok: true,
+                games: {
+                    final,
+                    semiFinal,
+                    quarterFinal,
+                    qualifications
+                }
             });
     })
 }
@@ -169,6 +187,7 @@ function finish(req, res) {
             game.ended = true;
             game.whitesTime = req.body.whitesTime;
             game.blacksTime = req.body.blacksTime;
+            game.winner = req.body.winner;
             
             game.save(err => {
                 if(err) return console.log(err);
@@ -176,6 +195,23 @@ function finish(req, res) {
                 return res.json({
                     ok: true,
                     message: 'The game has been successfully finished.',
+                    game
+                });
+            });
+        });
+}
+
+function draw(req, res) {
+    Game.findById(req.params.id)
+        .then(game => {
+            game.drawn = true;
+            
+            game.save(err => {
+                if(err) return console.log(err);
+
+                return res.json({
+                    ok: true,
+                    message: 'The game has been successfully drawn.',
                     game
                 });
             });
@@ -206,6 +242,7 @@ module.exports = {
     generateGames,
     start,
     finish,
+    draw,
     setTheWinner,
     saveHistory
 }

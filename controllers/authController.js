@@ -51,7 +51,7 @@ function signIn(req, res) {
             }
             // generate a signed json web token with the contents of user object and return it in the response
             const token = jwt.sign({ user: user.toJSON() }, config.secrets.jwt, {
-                expiresIn: '1h'
+                expiresIn: '24h'
             });
 
             return res.json({

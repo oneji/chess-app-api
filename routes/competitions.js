@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/auth')
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, 'uploads/')
+        cb(null, 'uploads/competitions')
     },
     filename: function(req, file, cb) {
         cb(null, Date.now() + '_' + file.originalname)
@@ -27,6 +27,7 @@ router.post('/:id/addPlayers', authMiddleware, CompetitionController.addPlayers)
 router.delete('/:id/removePlayers/:playerId', authMiddleware, CompetitionController.removePlayers);
 router.post('/start', authMiddleware, CompetitionController.start);
 router.get('/:id/games', authMiddleware, CompetitionController.getCompetitionGames);
-
+router.post('/:id/nextStage', authMiddleware, CompetitionController.createNextStageGames);
+router.post('/finish', authMiddleware, CompetitionController.finish);
 // Export
 module.exports = router

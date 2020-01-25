@@ -16,6 +16,7 @@ function get(req, res) {
     // Find all user competitions
     Competition.find({ deleted: false })
     .populate('players')
+    .populate('champion')
     .exec((err, competitions) => {
         res.json({
             'ok': true,
@@ -48,6 +49,7 @@ function getById(req, res) {
 function getBySlug(req, res) {
     Competition.findOne({ 'slug': req.params.slug })
         .populate('players')
+        .populate('champion')
         .populate({
             path: 'games',
             model: 'Game',
@@ -218,6 +220,17 @@ function start(req, res) {
             let games = [];
             whites = shuffledPlayers.whites;
             blacks = shuffledPlayers.blacks;
+            let gamesType = null;
+
+            if(whites.length === 1) {
+                gamesType = 'final';
+            } else if(whites.length === 2) {
+                gamesType = 'semiFinal';
+            } if(whites.length === 4) {
+                gamesType = 'quarterFinal';
+            } if(whites.length > 4) {
+                gamesType = 'qualifications';
+            }
 
             // Generate games for the competition
             for(let i = 0; i < whites.length; i++) {
@@ -227,6 +240,7 @@ function start(req, res) {
 
                 // Creating games and getting ready for mass insert to the DB
                 games.push(new Game({
+                    gameType: gamesType,
                     whites: whitePlayer,
                     whitesTime: null,
                     blacks: blackPlayer,
@@ -308,12 +322,131 @@ function getCompetitionGames(req, res) {
         .populate('whites')
         .populate('blacks')
         .then(games => {
-            return res.json({
+            let qualifications = { text: 'Qualifications', items: [] };
+            let quarterFinal = { text: 'Quarter final', items: [] };
+            let semiFinal = { text: 'Semi final', items: [] };
+            let final = { text: 'Final', items: [] };
+
+            let competitionGames = [];
+
+            games.map(game => {
+                if(game.gameType === 'qualifications') qualifications.items.push(game);
+                if(game.gameType === 'quarterFinal') quarterFinal.items.push(game);
+                if(game.gameType === 'semiFinal') semiFinal.items.push(game);
+                if(game.gameType === 'final') final.items.push(game);
+            });
+
+
+            res.json({
                 ok: true,
-                games
+                games: {
+                    qualifications,
+                    quarterFinal,
+                    semiFinal,
+                    final
+                }
             });
         });
 }
+
+function createNextStageGames(req, res) {
+    Competition.findById(req.params.id)
+        .then(competition => {
+            let gameTypeToSearch = null;
+            
+            if(req.body.gameType === 'quarterFinal') {
+                gameTypeToSearch = 'qualifications'
+            } else if(req.body.gameType === 'semiFinal') {
+                gameTypeToSearch = 'quarterFinal'
+            } else if(req.body.gameType === 'final') { 
+                gameTypeToSearch = 'semiFinal'
+            }
+
+            Game.find({ 
+                competition: competition._id, 
+                ended: true,
+                gameType: gameTypeToSearch
+            })
+            .then(games => {
+
+                // Determine all the winners of qualification games
+                let gamesType = req.body.gameType;
+                let gamesWinners = games.map(game => {
+                    return game[game.winner];
+                });
+
+                let shuffledPlayers = shufflePlayers(gamesWinners);
+
+                // Games array to be added to a competition
+                let newGames = [];
+                whites = shuffledPlayers.whites;
+                blacks = shuffledPlayers.blacks;
+
+                // Generate games for the competition
+                for(let i = 0; i < whites.length; i++) {
+                    // Defining white and black players
+                    let whitePlayer = whites[i];
+                    let blackPlayer = blacks[i];
+
+                    // Creating games and getting ready for mass insert to the DB
+                    newGames.push(new Game({
+                        gameType: gamesType,
+                        whites: whitePlayer,
+                        whitesTime: null,
+                        blacks: blackPlayer,
+                        blacksTime: null,
+                        winner: null,
+                        history: [],
+                        fen: '',
+                        competition: competition,
+                    }));
+                }
+
+                Game.insertMany(newGames, function(err) {
+                    if(err) return console.log(err);
+                });
+
+                return res.json({
+                    ok: true,
+                    message: 'Next stage has been set.',
+                    newGames
+                });
+            });
+        });
+}
+
+function finish(req, res) {
+    if(!req.body.id) {
+        return res.json({
+            ok: false,
+            message: 'Missing parameteres.'
+        });
+    }
+
+    Competition.findById(req.body.id)
+        .then(competition => {
+            
+
+            Game.findOne({ competition: req.body.id, gameType: 'final' })
+                .populate('whites')
+                .populate('blacks')
+                .exec((err, game) => {
+                    let competitionChampion = game[game.winner];
+
+                    competition.finished = true;
+                    competition.champion = competitionChampion._id;
+                    competition.save(err => {
+                        if(err) return console.log('error')
+
+                        return res.json({
+                            ok: true,
+                            message: 'The competition has been successfully finished.',
+                            competitionChampion,
+                        });
+                    });
+                });
+        });
+} 
 
 // Export
 module.exports = {
@@ -325,5 +458,7 @@ module.exports = {
     addPlayers,
     removePlayers,
     start,
-    getCompetitionGames
+    getCompetitionGames,
+    createNextStageGames,
+    finish
 }
