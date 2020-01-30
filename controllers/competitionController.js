@@ -213,63 +213,75 @@ function start(req, res) {
 
     Competition.findOne({ _id: req.body.id })
         .then(competition => {
-            // Shuffle competition players
-            shuffledPlayers = shufflePlayers(competition.players);            
-            
-            // Games array to be added to a competition
-            let games = [];
-            whites = shuffledPlayers.whites;
-            blacks = shuffledPlayers.blacks;
-            let gamesType = null;
+            let numberOfPlayers = [ 2, 4, 8, 16, 32 ];
+            let maxNumberOfPlayers = 32;
 
-            if(whites.length === 1) {
-                gamesType = 'final';
-            } else if(whites.length === 2) {
-                gamesType = 'semiFinal';
-            } if(whites.length === 4) {
-                gamesType = 'quarterFinal';
-            } if(whites.length > 4) {
-                gamesType = 'qualifications';
-            }
+            if(numberOfPlayers.includes(competition.players.length) && competition.players.length <= maxNumberOfPlayers) {
+                // Shuffle competition players
+                shuffledPlayers = shufflePlayers(competition.players);            
+                
+                // Games array to be added to a competition
+                let games = [];
+                whites = shuffledPlayers.whites;
+                blacks = shuffledPlayers.blacks;
+                let gamesType = null;
 
-            // Generate games for the competition
-            for(let i = 0; i < whites.length; i++) {
-                // Defining white and black players
-                let whitePlayer = whites[i];
-                let blackPlayer = blacks[i];
+                if(whites.length === 1) {
+                    gamesType = 'final';
+                } else if(whites.length === 2) {
+                    gamesType = 'semiFinal';
+                } if(whites.length === 4) {
+                    gamesType = 'quarterFinal';
+                } if(whites.length > 4) {
+                    gamesType = 'qualifications';
+                }
 
-                // Creating games and getting ready for mass insert to the DB
-                games.push(new Game({
-                    gameType: gamesType,
-                    whites: whitePlayer,
-                    whitesTime: null,
-                    blacks: blackPlayer,
-                    blacksTime: null,
-                    winner: null,
-                    history: [],
-                    fen: '',
-                    competition: competition,
-                }));
-            }
+                // Generate games for the competition
+                for(let i = 0; i < whites.length; i++) {
+                    // Defining white and black players
+                    let whitePlayer = whites[i];
+                    let blackPlayer = blacks[i];
 
-            Game.insertMany(games, function(err) {
-                if(err) return console.log(err);
-            });
+                    // Creating games and getting ready for mass insert to the DB
+                    games.push(new Game({
+                        gameType: gamesType,
+                        whites: whitePlayer,
+                        whitesTime: null,
+                        blacks: blackPlayer,
+                        blacksTime: null,
+                        winner: null,
+                        pgn: '',
+                        fen: '',
+                        competition: competition,
+                    }));
+                }
 
-            competition.started = true;
-
-            competition.save(err => {
-                if(err) return console.log(err);
-
-                return res.json({
-                    ok: true,
-                    message: 'Competition has been successfully started.',
-                    shuffledPlayers,
-                    competition,
-                    games,
-                    players: competition.players
+                Game.insertMany(games, function(err) {
+                    if(err) return console.log(err);
                 });
-            });
+
+                competition.started = true;
+
+                competition.save(err => {
+                    if(err) return console.log(err);
+
+                    return res.json({
+                        ok: true,
+                        message: 'Competition has been successfully started.',
+                        shuffledPlayers,
+                        competition,
+                        games,
+                        players: competition.players
+                    });
+                });
+            } else {
+                return res.json({
+                    ok: false,
+                    message: 'The number of players shoud be 2, 4, 8, 16 or 32.'
+                });
+            }
+
+            
         });
 }
 
@@ -396,7 +408,7 @@ function createNextStageGames(req, res) {
                         blacks: blackPlayer,
                         blacksTime: null,
                         winner: null,
-                        history: [],
+                        pgn: '',
                         fen: '',
                         competition: competition,
                     }));

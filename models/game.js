@@ -11,7 +11,7 @@ const gameSchema = new Schema({
     blacks:         { type: Schema.Types.ObjectId, ref: 'Player' },
     blacksTime:     { type: String, default: null },
     winner:         { type: String, default: null },
-    history:        { type: Array, default: [] },
+    pgn:            { type: String, default: '' },
     fen:            { type: String, default: '' },
     createdAt:      { type: Date, default: Date.now() },
     competition:    { type: Schema.Types.ObjectId, ref: 'Competition' }

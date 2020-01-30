@@ -79,8 +79,30 @@ function remove(req, res) {
         });
 }
 
+function playerStats(playerId, games) {
+    let totalGamesPlayed = Number(games.length);
+    let gamesWon = 0;
+
+    for(let i = 0; i < games.length; i++) {
+        let g = games[i];
+        
+        if(g[g.winner].toString() === playerId.toString()) {
+            gamesWon++;
+        }
+    }
+
+    let gamesLost = totalGamesPlayed - gamesWon;
+
+    return [
+        { text: 'Total games played', value: totalGamesPlayed },
+        { text: 'Games won', value: gamesWon },
+        { text: 'Games lost', value: gamesLost },
+    ];
+}
+
 module.exports = {
     get,
     create,
-    remove
+    remove,
+    playerStats
 }

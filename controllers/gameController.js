@@ -1,4 +1,6 @@
 const Game = require('../models/game');
+const Player = require('../models/player');
+const PlayerController = require('../controllers/playerController');
 const Joi = require('joi');
 
 /**
@@ -45,7 +47,7 @@ function get(req, res) {
     })
 }
 
-function getGameById(req, res) {
+async function getGameById(req, res) {
     if(req.params.id === undefined) {
         return res.json({
             ok: false,
@@ -53,15 +55,37 @@ function getGameById(req, res) {
         });
     }
 
-    Game.findOne({ _id: req.params.id })
-        .populate('whites')
-        .populate('blacks')
-        .then(game => {
-            return res.json({
-                ok: true,
-                game
-            });
-        });
+    let game = await Game.findOne({ _id: req.params.id }).populate('whites').populate('blacks');
+
+    let whitePlayer = game.whites;
+    let blackPlayer = game.blacks;
+    // Get the data about Players
+
+    let whitePlayerGames = await Game.find({
+        $or: [
+            { whites: whitePlayer._id },
+            { blacks: whitePlayer._id }
+        ]
+    });
+
+    let blackPlayerGames = await Game.find({
+        $or: [
+            { whites: blackPlayer._id },
+            { blacks: blackPlayer._id }
+        ]
+    });
+
+    whitePlayerStats = PlayerController.playerStats(whitePlayer._id, whitePlayerGames);
+    blackPlayerStats = PlayerController.playerStats(blackPlayer._id, blackPlayerGames);
+
+    return res.json({
+        ok: true,
+        game,
+        stats: {
+            whitePlayerStats,
+            blackPlayerStats
+        }
+    });
 }
 
 function generateGames(shuffledPlayers, competition) {
@@ -82,7 +106,7 @@ function generateGames(shuffledPlayers, competition) {
             blacks: blackPlayer,
             blacksTime: null,
             winner: null,
-            history: [],
+            pgn: [],
             fen: '',
             competition: competition,
         });
@@ -110,7 +134,7 @@ function create(req, res) {
         blacks: req.body.blacks,
         blacksTime: req.body.blacksTime,
         winner: req.body.winner,
-        history: [],
+        pgn: [],
         fen: '',
         competition: req.body.competition,
     });
@@ -221,7 +245,7 @@ function draw(req, res) {
 function saveHistory(req, res) {
     Game.findById(req.params.id)
         .then(game => {
-            game.history = req.body.history;
+            game.pgn = req.body.pgn;
             game.fen = req.body.fen;
 
             game.save(err => {
