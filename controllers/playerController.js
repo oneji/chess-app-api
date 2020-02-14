@@ -86,9 +86,12 @@ function playerStats(playerId, games) {
     for(let i = 0; i < games.length; i++) {
         let g = games[i];
         
-        if(g[g.winner].toString() === playerId.toString()) {
-            gamesWon++;
+        if(g.winner !== null) {
+            if(g[g.winner].toString() === playerId.toString()) {
+                gamesWon++;
+            }
         }
+
     }
 
     let gamesLost = totalGamesPlayed - gamesWon;
