@@ -12,17 +12,17 @@ passport.use(
         User.findOne({ username: username }, function(err, user) {
             // If user exists
             if(!user) { 
-                return cb(null, false, { message: 'Пользователя с таким именем не найдено.' });
+                return cb(null, false, { message: `No user found with username: ${username}.` });
             }
 
             // Compare passwords
             bcrypt.compare(password, user.password, function(err, success) {
                 // If passwords are the same
                 if(!success) { 
-                    return cb(null, false, { message: 'Неверный пароль.' });
+                    return cb(null, false, { message: 'Password is incorrect.' });
                 }
 
-                return cb(null, user, { message: 'Успешный вход.' });                
+                return cb(null, user, { message: 'Success.' });                
             });
             
         });

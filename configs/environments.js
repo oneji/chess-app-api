@@ -5,6 +5,9 @@ module.exports = {
         secrets: {
             session: 'OneJI',
             jwt: 'OneJI'
+        },
+        s3: {
+            bucketName: 'tk-chess-app',
         }
     },
     production: {
@@ -13,6 +16,9 @@ module.exports = {
         secrets: {
             session: 'OneJI',
             jwt: 'OneJI'
+        },
+        s3: {
+            bucketName: 'tk-chess-app',
         }
     }
 };

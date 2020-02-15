@@ -12,6 +12,7 @@
   "author": "Kamilov Tim",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.619.0",
     "bcrypt": "^2.0.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",

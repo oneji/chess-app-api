@@ -3,8 +3,6 @@ const env = process.env.NODE_ENV;
 const config = require('../configs/environments')[env]
 const jwt = require('jsonwebtoken');
 
-console.log(config.secrets.jwt);
-
 function auth(req, res, next) {
     const authHeader = req.header('Authorization');
     // Check for token
